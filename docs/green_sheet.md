@@ -20,6 +20,10 @@ All instructions are 32 bits wide, and the memory is byte-addressable (though cu
 | AND         | `AND rd, rs, rt`     | 0x00         | 0x24        | `rd = rs & rt`                |
 | OR          | `OR rd, rs, rt`      | 0x00         | 0x25        | `rd = rs | rt`                |
 | SLT         | `SLT rd, rs, rt`     | 0x00         | 0x2A        | `rd = (rs < rt) ? 1 : 0`      |
+| SLL         | `SLL rd, rt, shamt`  | 0x00         | 0x00        | `rd = rt << shamt`            |
+| SRL         | `SRL rd, rt, shamt`  | 0x00         | 0x02        | `rd = rt >> shamt`            |
+| SRA         | `SRA rd, rt, shamt`  | 0x00         | 0x03        | `rd = rt >>> shamt` (arith.)  |
+| JR          | `JR rs`              | 0x00         | 0x08        | `PC = rs`                     |
 
 ### I-Type Instructions
 **Format:** `[ Opcode (6) | rs (5) | rt (5) | Immediate (16) ]`
@@ -39,6 +43,7 @@ All instructions are 32 bits wide, and the memory is byte-addressable (though cu
 | Instruction | Mnemonic             | Opcode (Hex) | Action                               |
 |:------------|:---------------------|:------------:|:-------------------------------------|
 | J           | `J label`            | 0x02         | `PC = (PC+4)[31:28] \| (target<<2)`  |
+| JAL         | `JAL label`          | 0x03         | `$ra = PC+4; PC = (PC+4)[31:28] \| (target<<2)` |
 
 ---
 

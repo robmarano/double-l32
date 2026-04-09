@@ -31,7 +31,7 @@ module mips_core (
     pc_reg u_pc (
         .clk_i      (clk_i),
         .rst_ni     (rst_ni),
-        .en_i       (1'b1), // Always enabled for now (no stalls)
+        .en_i       (1'b1), // Always enabled for now
         .next_pc_i  (pc_next),
         .pc_o       (pc_current)
     );
@@ -43,9 +43,7 @@ module mips_core (
     logic [4:0]  rs;
     logic [4:0]  rt;
     logic [4:0]  rd;
-    /* verilator lint_off UNUSEDSIGNAL */
     logic [4:0]  shamt;
-    /* verilator lint_on UNUSEDSIGNAL */
     logic [5:0]  funct;
     logic [15:0] imm16;
     logic [25:0] jump_addr;
@@ -65,16 +63,17 @@ module mips_core (
     // -------------------------------------------------------------------------
     // Control Unit
     // -------------------------------------------------------------------------
-    logic       reg_dst;
+    logic [1:0] reg_dst;
     logic       alu_src;
     logic [3:0] alu_control;
     logic       mem_read;
     logic       mem_write;
-    logic       mem_to_reg;
+    logic [1:0] mem_to_reg;
     logic       reg_write;
     logic       branch_eq;
     logic       branch_ne;
     logic       jump;
+    logic       jump_reg;
 
     control_unit u_control (
         .opcode_i      (opcode),
@@ -88,7 +87,8 @@ module mips_core (
         .reg_write_o   (reg_write),
         .branch_o      (branch_eq),
         .branch_ne_o   (branch_ne),
-        .jump_o        (jump)
+        .jump_o        (jump),
+        .jump_reg_o    (jump_reg)
     );
 
     // -------------------------------------------------------------------------
@@ -99,7 +99,11 @@ module mips_core (
     logic [31:0] read_data1;
     logic [31:0] read_data2;
 
-    assign write_reg = (reg_dst) ? rd : rt;
+    always_comb begin
+        if (reg_dst == 2'b01)      write_reg = rd;
+        else if (reg_dst == 2'b10) write_reg = 5'd31; // $ra
+        else                       write_reg = rt;
+    end
 
     regfile u_regfile (
         .clk_i      (clk_i),
@@ -125,6 +129,7 @@ module mips_core (
     alu u_alu (
         .a_i        (read_data1),
         .b_i        (alu_b_in),
+        .shamt_i    (shamt),
         .alu_op_i   (alu_control),
         .result_o   (alu_result),
         .zero_o     (alu_zero)
@@ -138,7 +143,11 @@ module mips_core (
     assign data_we_o    = mem_write;
     assign data_re_o    = mem_read;
 
-    assign write_data = (mem_to_reg) ? data_rdata_i : alu_result;
+    always_comb begin
+        if (mem_to_reg == 2'b01)      write_data = data_rdata_i;
+        else if (mem_to_reg == 2'b10) write_data = pc_plus_4;
+        else                          write_data = alu_result;
+    end
 
     // -------------------------------------------------------------------------
     // Next PC Logic (Branch / Jump)
@@ -150,7 +159,9 @@ module mips_core (
     assign take_branch = (branch_eq & alu_zero) | (branch_ne & ~alu_zero);
 
     always_comb begin
-        if (jump) begin
+        if (jump_reg) begin
+            pc_next = read_data1; // JR
+        end else if (jump) begin
             pc_next = pc_jump;
         end else if (take_branch) begin
             pc_next = pc_branch;

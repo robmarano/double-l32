@@ -17,7 +17,8 @@ OPCODES = {
     "SW":    0x2B,
     "BEQ":   0x04,
     "BNE":   0x05,
-    "J":     0x02
+    "J":     0x02,
+    "JAL":   0x03
 }
 
 FUNCTS = {
@@ -25,7 +26,11 @@ FUNCTS = {
     "SUB": 0x22,
     "AND": 0x24,
     "OR":  0x25,
-    "SLT": 0x2A
+    "SLT": 0x2A,
+    "SLL": 0x00,
+    "SRL": 0x02,
+    "SRA": 0x03,
+    "JR":  0x08
 }
 
 def parse_reg(reg_str):
@@ -82,12 +87,24 @@ def assemble(input_file, output_file):
         code = 0
         
         if mnemonic in FUNCTS: # R-Type
-            # Format: mnemonic rd, rs, rt
-            r = args.replace(' ', '').split(',')
-            rd = parse_reg(r[0])
-            rs = parse_reg(r[1])
-            rt = parse_reg(r[2])
-            code = (OPCODES["R"] << 26) | (rs << 21) | (rt << 16) | (rd << 11) | (0 << 6) | FUNCTS[mnemonic]
+            if mnemonic in ["SLL", "SRL", "SRA"]:
+                # Format: mnemonic rd, rt, shamt
+                r = args.replace(' ', '').split(',')
+                rd = parse_reg(r[0])
+                rt = parse_reg(r[1])
+                shamt = parse_imm(r[2]) & 0x1F
+                code = (OPCODES["R"] << 26) | (0 << 21) | (rt << 16) | (rd << 11) | (shamt << 6) | FUNCTS[mnemonic]
+            elif mnemonic == "JR":
+                # Format: JR rs
+                rs = parse_reg(args.replace(' ', ''))
+                code = (OPCODES["R"] << 26) | (rs << 21) | (0 << 16) | (0 << 11) | (0 << 6) | FUNCTS[mnemonic]
+            else:
+                # Format: mnemonic rd, rs, rt
+                r = args.replace(' ', '').split(',')
+                rd = parse_reg(r[0])
+                rs = parse_reg(r[1])
+                rt = parse_reg(r[2])
+                code = (OPCODES["R"] << 26) | (rs << 21) | (rt << 16) | (rd << 11) | (0 << 6) | FUNCTS[mnemonic]
             
         elif mnemonic == "ADDI":
             # Format: ADDI rt, rs, imm
@@ -138,14 +155,15 @@ def assemble(input_file, output_file):
             op = OPCODES[mnemonic]
             code = (op << 26) | (rs << 21) | (rt << 16) | offset
             
-        elif mnemonic == "J":
-            # Format: J label
+        elif mnemonic in ["J", "JAL"]:
+            # Format: J/JAL label
             target = args.strip()
             if target in labels:
                 addr = labels[target] // 4
             else:
                 addr = int(target, 0)
-            code = (OPCODES["J"] << 26) | (addr & 0x03FFFFFF)
+            op = OPCODES[mnemonic]
+            code = (op << 26) | (addr & 0x03FFFFFF)
             
         else:
             print(f"Error: Unknown mnemonic '{mnemonic}' at PC 0x{pc:08X}")
