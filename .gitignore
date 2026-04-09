@@ -1,0 +1,26 @@
+# Build directories
+build/
+build_test/
+
+# Object files and archives
+*.o
+*.a
+*.d
+
+# Executables
+*.out
+*.exe
+
+# Simulation traces
+*.vcd
+*.fst
+
+# OS generated files
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Local Gemini tmp (if any)
+.gemini/tmp/
