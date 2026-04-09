@@ -31,6 +31,11 @@ if [ -f "$INSTALL_DIR/double-l32-asm" ]; then
     sudo rm -f "$INSTALL_DIR/double-l32-asm"
 fi
 
+# Remove the help wrapper
+if [ -f "$INSTALL_DIR/double-l32-help" ]; then
+    sudo rm -f "$INSTALL_DIR/double-l32-help"
+fi
+
 echo ">>> Removing assets directory $ASSETS_DIR..."
 if [ -d "$ASSETS_DIR" ]; then
     rm -rf "$ASSETS_DIR"

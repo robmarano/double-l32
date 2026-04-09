@@ -24,9 +24,17 @@ ASSETS_DIR="$HOME/.double-l32"
 echo ">>> Creating assets directory at $ASSETS_DIR..."
 mkdir -p "$ASSETS_DIR"
 
-# 3. Copy the font asset
-echo ">>> Installing font asset..."
+# 3. Copy assets, docs, and examples
+echo ">>> Installing assets, documentation, and examples..."
 cp assets/font.ttf "$ASSETS_DIR/font.ttf"
+
+mkdir -p "$ASSETS_DIR/docs"
+cp docs/green_sheet.md "$ASSETS_DIR/docs/green_sheet.md"
+cp docs/USAGE.md "$ASSETS_DIR/docs/USAGE.md"
+
+mkdir -p "$ASSETS_DIR/examples"
+cp asm/*.s "$ASSETS_DIR/examples/"
+cp roms/*.hex "$ASSETS_DIR/examples/"
 
 # 4. Create the wrapper script for the Emulator
 echo ">>> Creating 'double-l32-run' wrapper script..."
@@ -68,16 +76,36 @@ EOF
 
 chmod +x build/double-l32-asm
 
-# 6. Install to /usr/local/bin
+# 6. Create a helper command
+echo ">>> Creating 'double-l32-help' wrapper script..."
+cat << 'EOF' > build/double-l32-help
+#!/usr/bin/env bash
+echo "============================================="
+echo " double-l32 Emulator Toolbelt "
+echo "============================================="
+echo "Commands:"
+echo "  double-l32-asm <in.s> <out.hex>  : Compile MIPS assembly"
+echo "  double-l32-run <out.hex>         : Run emulator"
+echo "  double-l32-help                  : Show this message"
+echo ""
+echo "Documentation & Examples installed at: $HOME/.double-l32/"
+echo "  Usage Guide: cat $HOME/.double-l32/docs/USAGE.md"
+echo "  Green Sheet: cat $HOME/.double-l32/docs/green_sheet.md"
+echo "  Examples:    ls $HOME/.double-l32/examples/"
+echo "============================================="
+EOF
+
+chmod +x build/double-l32-help
+
+# 7. Install to /usr/local/bin
 echo ">>> Installing binaries to $INSTALL_DIR (this may require sudo)..."
 sudo cp build/Vmips_top "$INSTALL_DIR/Vmips_top"
 sudo cp build/double-l32-run "$INSTALL_DIR/"
 sudo cp tools/assembler.py "$INSTALL_DIR/"
 sudo cp build/double-l32-asm "$INSTALL_DIR/"
+sudo cp build/double-l32-help "$INSTALL_DIR/"
 
 echo "============================================="
 echo " Installation Complete!"
 echo "============================================="
-echo "You can now use the following commands from anywhere on your system:"
-echo "  1. Assemble a program: double-l32-asm my_program.s my_program.hex"
-echo "  2. Run the emulator:   double-l32-run my_program.hex"
+echo "Run 'double-l32-help' to get started."
