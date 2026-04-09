@@ -44,7 +44,7 @@ assemble:
 # Run the simulation
 run: assemble all
 	@echo "Running simulation..."
-	./$(BUILD_DIR)/V$(TOP_MODULE)
+	./$(BUILD_DIR)/V$(TOP_MODULE) +rom=roms/boot.hex
 
 # Run ALU/Regfile Unit Test
 test_alu: $(SV_SOURCES) $(TEST_SV) $(TEST_CPP)

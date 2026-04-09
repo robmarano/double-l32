@@ -21,12 +21,18 @@ module ram_dp #(
     localparam int DEPTH = 1 << ADDR_WIDTH;
     logic [DATA_WIDTH-1:0] mem [DEPTH-1:0];
 
-    // Initialize memory to 0 and load ROM
+    // Initialize memory to 0 and load ROM from +plusarg
+    string rom_file;
     initial begin
         for (int i = 0; i < DEPTH; i++) begin
             mem[i] = '0;
         end
-        $readmemh("roms/boot.hex", mem);
+        if ($value$plusargs("rom=%s", rom_file)) begin
+            $display("Loading ROM from %s...", rom_file);
+            $readmemh(rom_file, mem);
+        end else begin
+            $display("Warning: No ROM file specified (+rom=...). Memory is empty.");
+        end
     end
 
     // Port A: Instruction Read

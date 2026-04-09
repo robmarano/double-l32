@@ -32,6 +32,13 @@ struct ScreenBuffer {
 
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
+    
+    // Look for font in environment or local assets folder
+    const char* font_path = std::getenv("DOUBLE_L32_FONT");
+    if (!font_path) {
+        font_path = "assets/font.ttf"; // Default for local development
+    }
+
     auto top = std::make_unique<Vmips_top>();
 
     // Initialize SDL2
@@ -52,9 +59,10 @@ int main(int argc, char** argv) {
     );
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    TTF_Font* font = TTF_OpenFont("assets/font.ttf", 16);
+    TTF_Font* font = TTF_OpenFont(font_path, 16);
     if (!font) {
-        std::cerr << "Failed to load font! Make sure assets/font.ttf exists." << std::endl;
+        std::cerr << "Failed to load font from: " << font_path << std::endl;
+        std::cerr << "Set DOUBLE_L32_FONT environment variable to point to a valid TTF file." << std::endl;
         return 1;
     }
 
