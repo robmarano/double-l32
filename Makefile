@@ -26,7 +26,7 @@ SDL2_CFLAGS = $(shell sdl2-config --cflags)
 SDL2_LDFLAGS = $(shell sdl2-config --libs) -lSDL2_ttf
 VFLAGS += -CFLAGS "$(SDL2_CFLAGS)" -LDFLAGS "$(SDL2_LDFLAGS)"
 
-.PHONY: all clean run test_alu
+.PHONY: all clean run test_alu assemble
 
 # Default target
 all: $(BUILD_DIR)/V$(TOP_MODULE)
@@ -36,8 +36,13 @@ $(BUILD_DIR)/V$(TOP_MODULE): $(SV_SOURCES) $(CPP_SOURCES)
 	@echo "Building Verilator model..."
 	$(VERILATOR) $(VFLAGS) $(SV_SOURCES) $(CPP_SOURCES)
 
+# Assemble the boot ROM
+assemble:
+	@echo "Assembling asm/hello.s to roms/boot.hex..."
+	python3 tools/assembler.py asm/hello.s roms/boot.hex
+
 # Run the simulation
-run: all
+run: assemble all
 	@echo "Running simulation..."
 	./$(BUILD_DIR)/V$(TOP_MODULE)
 
