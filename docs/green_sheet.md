@@ -23,6 +23,10 @@ All instructions are 32 bits wide, and the memory is byte-addressable (though cu
 | SLL         | `SLL rd, rt, shamt`  | 0x00         | 0x00        | `rd = rt << shamt`            |
 | SRL         | `SRL rd, rt, shamt`  | 0x00         | 0x02        | `rd = rt >> shamt`            |
 | SRA         | `SRA rd, rt, shamt`  | 0x00         | 0x03        | `rd = rt >>> shamt` (arith.)  |
+| MULT        | `MULT rs, rt`        | 0x00         | 0x18        | `(HI, LO) = rs * rt` (signed) |
+| DIV         | `DIV rs, rt`         | 0x00         | 0x1A        | `LO = rs / rt`, `HI = rs % rt`|
+| MFHI        | `MFHI rd`            | 0x00         | 0x10        | `rd = HI`                     |
+| MFLO        | `MFLO rd`            | 0x00         | 0x12        | `rd = LO`                     |
 | JR          | `JR rs`              | 0x00         | 0x08        | `PC = rs`                     |
 
 ### I-Type Instructions

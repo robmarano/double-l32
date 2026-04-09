@@ -65,11 +65,12 @@ module mips_core (
     // -------------------------------------------------------------------------
     logic [1:0] reg_dst;
     logic       alu_src;
-    logic [3:0] alu_control;
+    logic [4:0] alu_control;
     logic       mem_read;
     logic       mem_write;
     logic [1:0] mem_to_reg;
     logic       reg_write;
+    logic       hilo_write;
     logic       branch_eq;
     logic       branch_ne;
     logic       jump;
@@ -85,6 +86,7 @@ module mips_core (
         .mem_write_o   (mem_write),
         .mem_to_reg_o  (mem_to_reg),
         .reg_write_o   (reg_write),
+        .hilo_write_o  (hilo_write),
         .branch_o      (branch_eq),
         .branch_ne_o   (branch_ne),
         .jump_o        (jump),
@@ -118,6 +120,22 @@ module mips_core (
     );
 
     // -------------------------------------------------------------------------
+    // HI / LO Registers
+    // -------------------------------------------------------------------------
+    logic [31:0] hi_q, lo_q;
+    logic [31:0] alu_hi_out, alu_lo_out;
+
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (!rst_ni) begin
+            hi_q <= 32'h0;
+            lo_q <= 32'h0;
+        end else if (hilo_write) begin
+            hi_q <= alu_hi_out;
+            lo_q <= alu_lo_out;
+        end
+    end
+
+    // -------------------------------------------------------------------------
     // ALU
     // -------------------------------------------------------------------------
     logic [31:0] alu_b_in;
@@ -131,7 +149,11 @@ module mips_core (
         .b_i        (alu_b_in),
         .shamt_i    (shamt),
         .alu_op_i   (alu_control),
+        .hi_i       (hi_q),
+        .lo_i       (lo_q),
         .result_o   (alu_result),
+        .hi_o       (alu_hi_out),
+        .lo_o       (alu_lo_out),
         .zero_o     (alu_zero)
     );
 

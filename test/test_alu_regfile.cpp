@@ -21,6 +21,9 @@ void reset(std::unique_ptr<Valu_regfile_tb>& top) {
 int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     auto top = std::make_unique<Valu_regfile_tb>();
+    top->shamt_i = 0;
+    top->hi_i = 0;
+    top->lo_i = 0;
 
     reset(top);
 

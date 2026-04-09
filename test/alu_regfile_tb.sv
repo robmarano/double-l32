@@ -12,10 +12,15 @@ module alu_regfile_tb (
     input  logic        we_i,
     
     // ALU controls
-    input  logic [3:0]  alu_op_i,
+    input  logic [4:0]  alu_op_i,
+    input  logic [4:0]  shamt_i,
+    input  logic [31:0] hi_i,
+    input  logic [31:0] lo_i,
     
     // Outputs
     output logic [31:0] alu_result_o,
+    output logic [31:0] alu_hi_o,
+    output logic [31:0] alu_lo_o,
     output logic        alu_zero_o
 );
 
@@ -37,8 +42,13 @@ module alu_regfile_tb (
     alu u_alu (
         .a_i        (rs_data),
         .b_i        (rt_data),
+        .shamt_i    (shamt_i),
         .alu_op_i   (alu_op_i),
+        .hi_i       (hi_i),
+        .lo_i       (lo_i),
         .result_o   (alu_result_o),
+        .hi_o       (alu_hi_o),
+        .lo_o       (alu_lo_o),
         .zero_o     (alu_zero_o)
     );
 

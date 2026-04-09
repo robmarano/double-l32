@@ -38,8 +38,8 @@ $(BUILD_DIR)/V$(TOP_MODULE): $(SV_SOURCES) $(CPP_SOURCES)
 
 # Assemble the boot ROM
 assemble:
-	@echo "Assembling asm/hello.s to roms/boot.hex..."
-	python3 tools/assembler.py asm/hello.s roms/boot.hex
+	@echo "Assembling asm/mult_div_test.s to roms/boot.hex..."
+	python3 tools/assembler.py asm/mult_div_test.s roms/boot.hex
 
 # Run the simulation
 run: assemble all

@@ -7,7 +7,7 @@ module control_unit (
     // Execution control signals
     output logic [1:0] reg_dst_o,    // 00: rt, 01: rd, 10: $ra
     output logic       alu_src_o,    // 1: ALU B input is Immediate, 0: ALU B is Register rt
-    output logic [3:0] alu_control_o,// 4-bit control signal for the ALU
+    output logic [4:0] alu_control_o,// 5-bit control signal for the ALU
     
     // Memory control signals
     output logic       mem_read_o,   // 1: Read memory
@@ -16,6 +16,7 @@ module control_unit (
     
     // Writeback control
     output logic       reg_write_o,  // 1: Enable register write
+    output logic       hilo_write_o, // 1: Enable HI/LO register write (for MULT/DIV)
     
     // PC control signals
     output logic       branch_o,     // 1: BEQ instruction
@@ -45,17 +46,31 @@ module control_unit (
     localparam logic [5:0] FUNCT_SRL     = 6'b000010;
     localparam logic [5:0] FUNCT_SRA     = 6'b000011;
     localparam logic [5:0] FUNCT_JR      = 6'b001000;
+    localparam logic [5:0] FUNCT_MULT    = 6'b011000;
+    localparam logic [5:0] FUNCT_DIV     = 6'b011010;
+    localparam logic [5:0] FUNCT_MFHI    = 6'b010000;
+    localparam logic [5:0] FUNCT_MFLO    = 6'b010010;
 
     // ALU Control Constants
-    localparam logic [3:0] ALU_ADD  = 4'b0010;
-    localparam logic [3:0] ALU_SUB  = 4'b0110;
-    localparam logic [3:0] ALU_AND  = 4'b0000;
-    localparam logic [3:0] ALU_OR   = 4'b0001;
-    localparam logic [3:0] ALU_SLT  = 4'b0111;
-    localparam logic [3:0] ALU_LUI  = 4'b1000;
-    localparam logic [3:0] ALU_SLL  = 4'b1001;
-    localparam logic [3:0] ALU_SRL  = 4'b1010;
-    localparam logic [3:0] ALU_SRA  = 4'b1011;
+    localparam [4:0] ALU_AND  = 5'b00000;
+    localparam [4:0] ALU_OR   = 5'b00001;
+    localparam [4:0] ALU_ADD  = 5'b00010;
+    /* verilator lint_off UNUSEDPARAM */
+    localparam [4:0] ALU_XOR  = 5'b00100;
+    /* verilator lint_on UNUSEDPARAM */
+    localparam [4:0] ALU_SUB  = 5'b00110;
+    localparam [4:0] ALU_SLT  = 5'b00111;
+    localparam [4:0] ALU_LUI  = 5'b01000;
+    localparam [4:0] ALU_SLL  = 5'b01001;
+    localparam [4:0] ALU_SRL  = 5'b01010;
+    localparam [4:0] ALU_SRA  = 5'b01011;
+    /* verilator lint_off UNUSEDPARAM */
+    localparam [4:0] ALU_NOR  = 5'b01100;
+    /* verilator lint_on UNUSEDPARAM */
+    localparam [4:0] ALU_MULT = 5'b01101;
+    localparam [4:0] ALU_DIV  = 5'b01110;
+    localparam [4:0] ALU_MFHI = 5'b01111;
+    localparam [4:0] ALU_MFLO = 5'b10000;
 
     // Internal ALUOp signals
     logic [1:0] alu_op;
@@ -66,6 +81,7 @@ module control_unit (
         alu_src_o    = 1'b0;
         mem_to_reg_o = 2'b00;
         reg_write_o  = 1'b0;
+        hilo_write_o = 1'b0;
         mem_read_o   = 1'b0;
         mem_write_o  = 1'b0;
         branch_o     = 1'b0;
@@ -76,12 +92,14 @@ module control_unit (
 
         case (opcode_i)
             OPCODE_R_TYPE: begin
+                alu_op = 2'b10;
                 if (funct_i == FUNCT_JR) begin
                     jump_reg_o = 1'b1;
+                end else if (funct_i == FUNCT_MULT || funct_i == FUNCT_DIV) begin
+                    hilo_write_o = 1'b1; // MULT/DIV write to HI/LO, not GPR
                 end else begin
                     reg_dst_o   = 2'b01;
                     reg_write_o = 1'b1;
-                    alu_op      = 2'b10;
                 end
             end
             OPCODE_ADDI: begin
@@ -137,15 +155,19 @@ module control_unit (
             2'b11: alu_control_o = ALU_LUI; // LUI
             2'b10: begin // R-Type
                 case (funct_i)
-                    FUNCT_ADD: alu_control_o = ALU_ADD;
-                    FUNCT_SUB: alu_control_o = ALU_SUB;
-                    FUNCT_AND: alu_control_o = ALU_AND;
-                    FUNCT_OR:  alu_control_o = ALU_OR;
-                    FUNCT_SLT: alu_control_o = ALU_SLT;
-                    FUNCT_SLL: alu_control_o = ALU_SLL;
-                    FUNCT_SRL: alu_control_o = ALU_SRL;
-                    FUNCT_SRA: alu_control_o = ALU_SRA;
-                    default:   alu_control_o = ALU_ADD;
+                    FUNCT_ADD:  alu_control_o = ALU_ADD;
+                    FUNCT_SUB:  alu_control_o = ALU_SUB;
+                    FUNCT_AND:  alu_control_o = ALU_AND;
+                    FUNCT_OR:   alu_control_o = ALU_OR;
+                    FUNCT_SLT:  alu_control_o = ALU_SLT;
+                    FUNCT_SLL:  alu_control_o = ALU_SLL;
+                    FUNCT_SRL:  alu_control_o = ALU_SRL;
+                    FUNCT_SRA:  alu_control_o = ALU_SRA;
+                    FUNCT_MULT: alu_control_o = ALU_MULT;
+                    FUNCT_DIV:  alu_control_o = ALU_DIV;
+                    FUNCT_MFHI: alu_control_o = ALU_MFHI;
+                    FUNCT_MFLO: alu_control_o = ALU_MFLO;
+                    default:    alu_control_o = ALU_ADD;
                 endcase
             end
             default: alu_control_o = ALU_ADD;

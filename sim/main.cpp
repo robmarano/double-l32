@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
             if (top->mmio_screen_addr_o == 0x10002000) {
                 std::cout << "Hardware requested halt (Write to 0x10002000)." << std::endl;
                 quit = true;
-            } else {
+            } else if (top->mmio_screen_addr_o >= 0x10000000 && top->mmio_screen_addr_o < 0x10001000) {
                 // Address is absolute (e.g., 0x10000004). We offset to 0.
                 uint32_t offset = top->mmio_screen_addr_o - 0x10000000;
                 // Byte address to character index

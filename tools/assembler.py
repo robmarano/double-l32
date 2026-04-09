@@ -30,7 +30,11 @@ FUNCTS = {
     "SLL": 0x00,
     "SRL": 0x02,
     "SRA": 0x03,
-    "JR":  0x08
+    "JR":  0x08,
+    "MULT": 0x18,
+    "DIV":  0x1A,
+    "MFHI": 0x10,
+    "MFLO": 0x12
 }
 
 def parse_reg(reg_str):
@@ -98,6 +102,16 @@ def assemble(input_file, output_file):
                 # Format: JR rs
                 rs = parse_reg(args.replace(' ', ''))
                 code = (OPCODES["R"] << 26) | (rs << 21) | (0 << 16) | (0 << 11) | (0 << 6) | FUNCTS[mnemonic]
+            elif mnemonic in ["MULT", "DIV"]:
+                # Format: mnemonic rs, rt
+                r = args.replace(' ', '').split(',')
+                rs = parse_reg(r[0])
+                rt = parse_reg(r[1])
+                code = (OPCODES["R"] << 26) | (rs << 21) | (rt << 16) | (0 << 11) | (0 << 6) | FUNCTS[mnemonic]
+            elif mnemonic in ["MFHI", "MFLO"]:
+                # Format: mnemonic rd
+                rd = parse_reg(args.replace(' ', ''))
+                code = (OPCODES["R"] << 26) | (0 << 21) | (0 << 16) | (rd << 11) | (0 << 6) | FUNCTS[mnemonic]
             else:
                 # Format: mnemonic rd, rs, rt
                 r = args.replace(' ', '').split(',')
