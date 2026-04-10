@@ -29,13 +29,16 @@ module mmio_decoder (
     // 0x0000_0000 - 0x0000_0FFF : RAM (Word Address: bits 11:2)
     // 0x1000_0000 - 0x1000_0FFF : Screen MMIO
     // 0x1000_1000               : Keyboard MMIO
+    // 0x1000_2000               : Halt MMIO
     // -------------------------------------------------------------------------
     logic is_ram;
     logic is_screen;
     logic is_keys;
+    logic is_halt;
 
     assign is_ram    = (cpu_addr_i[31:12] == 20'h00000);
-    assign is_screen = (cpu_addr_i[31:12] == 20'h10000);
+    assign is_screen = (cpu_addr_i[31:12] == 20'h10000); // This only covers up to 0x1000_0FFF
+    assign is_halt   = (cpu_addr_i == 32'h10002000);
     assign is_keys   = (cpu_addr_i == 32'h10001000);
 
     // Route to RAM
@@ -44,8 +47,8 @@ module mmio_decoder (
     assign ram_we_o    = cpu_we_i & is_ram;
     assign ram_re_o    = cpu_re_i & is_ram;
 
-    // Route to Screen
-    assign screen_we_o    = cpu_we_i & is_screen;
+    // Route to Screen/Halt interface (testbench watches mmio_screen_we_o)
+    assign screen_we_o    = cpu_we_i & (is_screen | is_halt);
     assign screen_addr_o  = cpu_addr_i;
     assign screen_wdata_o = cpu_wdata_i;
 

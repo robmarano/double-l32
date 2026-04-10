@@ -9,6 +9,7 @@
 *   **Phase 6: Extended ISA & Assembler:** Done. Expanded the ALU and Control Unit to support Shifts (`SLL`, `SRL`, `SRA`), Multiplication/Division (`MULT`, `DIV`, `MFHI`, `MFLO`), and Jumps (`JR`, `JAL`). Developed a custom Python two-pass assembler (`tools/assembler.py`) supporting labels and instruction mapping.
 *   **Phase 7: Packaging & Deployment:** Done. Converted the emulator to load ROMs dynamically at runtime using `+plusargs`. Packaged the executable and assembler with a global installer script (`install.sh`), bridging the local environment to the `/usr/local/bin` `$PATH`.
 *   **Phase 8: Architecture & Documentation Update:** Done. Consolidated Green Sheet (`docs/green_sheet.md`), generated UML diagrams (`docs/ARCHITECTURE.md`), and updated `README.md` for seamless onboarding.
+*   **Phase 9: Final Verification & Demo:** Done. Developed `asm/demo.s` to verify the new `MULT` and `MFLO` instructions. Successfully confirmed that the CPU can perform arithmetic multiplication and output the result as ASCII characters ('*') to the phosphor screen buffer before halting.
 
 ## Current State
 The `double-l32` MIPS emulator is fully functional. Hardware logic, memory mapping, software integration, and a dedicated compilation toolchain are working harmoniously. It has graduated from an MVP to a globally installable local toolbelt.

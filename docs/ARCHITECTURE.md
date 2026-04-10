@@ -82,4 +82,26 @@ sequenceDiagram
     end
     
     SDL2->>User: Renders Phosphor 'H' on Window
+
+## 4. Dynamic ROM Loading Flow (Startup Sequence)
+
+This diagram shows how a custom machine code binary is injected into the hardware simulation at runtime.
+
+```mermaid
+sequenceDiagram
+    participant OS as Host OS Shell
+    participant Run as double-l32-run (Wrapper)
+    participant V as Verilator C++ Runtime
+    participant SV as ram_dp.sv (Hardware)
+
+    OS->>Run: ./double-l32-run my_game.hex
+    Run->>Run: Sets DOUBLE_L32_FONT env var
+    Run->>V: Exec ./Vmips_top +rom=my_game.hex
+    V->>SV: Instantiates Model
+    SV->>SV: initial block: $value$plusargs("rom=%s", file)
+    SV->>OS: $readmemh(file, mem)
+    SV->>SV: Instruction Memory populated
+    V->>SV: Start Ticking clk_i
+    SV->>V: First Instruction Fetch (PC 0x0)
+```
 ```
